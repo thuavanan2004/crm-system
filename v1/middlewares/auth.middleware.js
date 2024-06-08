@@ -1,27 +1,13 @@
-const Account = require("../models/account.model");
+const jwt = require('jsonwebtoken');
 
+module.exports.authenticateToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    if (!token) return res.sendStatus(401);
 
-module.exports.requireAuth = async (req, res, next) => {
-    if (!req.headers.authorization || !req.headers.authorization.split(" ")[1]) {
-        res.json({
-            code: 400,
-            message: "Vui lòng gửi kèm token!"
-        });
-        return;
-    }
-    const token = req.headers.authorization.split(" ")[1];
-    const existAccount = await Account.findOne({
-        token: token,
-        deleted: false
-    }).select("fullName email")
-
-    if (!existAccount) {
-        res.json({
-            code: 400,
-            message: "Token không hợp lệ!"
-        })
-        return;
-    }
-    res.locals.user = existAccount;
-    next();
-}
+    jwt.verify(token, process.env.JWT_ACCESS_KEY, (err, decoded) => {
+        if (err) return res.sendStatus(403);
+        req.userId = decoded.userId;
+        next();
+    });
+};

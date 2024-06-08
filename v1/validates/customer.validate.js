@@ -20,6 +20,7 @@ const customerValidationSchema = Joi.object({
       'string.empty': 'Vui lòng nhập email',
       'string.email': 'Vui lòng nhập đúng định dạng email'
     }),
+  phone: Joi.string(),
   address: Joi.object({
     street: Joi.string().optional(),
     city: Joi.string().optional(),

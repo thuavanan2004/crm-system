@@ -1,4 +1,5 @@
 const Product = require("../models/product.model")
+const productValidate = require("../validates/product.validate");
 
 // [GET] /api/v1/products/
 module.exports.list = async (req, res) => {
@@ -84,20 +85,12 @@ module.exports.create = async (req, res) => {
 
 // [PATCH] /api/v1/products/edit/:id
 module.exports.edit = async (req, res) => {
-  const result = productValidate(req.body);
-  if (result.error) {
-    res.status(400).json({
-      code: 400,
-      message: result.error.details.map(err => err.message)
-    });
-    return;
-  }
 
   try {
     const id = req.params.id;
     const updatedProduct = await Product.updateOne({
       _id: id
-    }, result.value);
+    }, req.body);
 
     if (!updatedProduct) {
       res.status(404).json({
@@ -119,14 +112,12 @@ module.exports.edit = async (req, res) => {
   }
 }
 
-// [PATCH] /api/v1/products/delete/:id
+// [DELETE] /api/v1/products/delete/:id
 module.exports.delete = async (req, res) => {
   try {
     const id = req.params.id;
-    const deletedProduct = await Product.updateOne({
+    const deletedProduct = await Product.deleteOne({
       _id: id
-    }, {
-      deleted: true
     });
 
     if (!deletedProduct) {

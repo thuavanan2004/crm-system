@@ -1,9 +1,9 @@
 const Account = require("../models/account.model")
+const bcrypt = require('bcryptjs');
 const generateHelper = require("../../helpers/generate.helper");
 const loginValidate = require("../validates/login.validate");
 const accountValidate = require("../validates/account.validate");
 
-const md5 = require("md5");
 
 // [POST] api/v1/auth/register
 module.exports.register = async (req, res) => {
@@ -28,14 +28,17 @@ module.exports.register = async (req, res) => {
     }
     const account = result.value;
 
-    account.password = md5(result.value.password)
-    account.token = generateHelper.generateToken(30)
+    const hashedPassword = await bcrypt.hash(account.password, 10);
 
+    account.password = hashedPassword;
     const record = new Account(account);
     await record.save();
+
+    const token = generateHelper.generateToken(record.id)
     res.json({
       code: 200,
-      message: "Tạo tài khoản thành công!"
+      message: "Tạo tài khoản thành công!",
+      token: token
     })
   }
 }
@@ -63,17 +66,19 @@ module.exports.login = async (req, res) => {
         })
         return;
       }
-      if (existAccount.password != md5(result.value.password)) {
+      const validPassword = await bcrypt.compare(result.value.password, existAccount.password);
+      if (!validPassword) {
         res.json({
           code: 400,
           message: "Mật khẩu không đúng!"
         })
         return;
       }
+      const token = generateHelper.generateToken(existAccount.id)
       res.json({
         code: 200,
         message: "Đăng nhập thành công!",
-        token: existAccount.token
+        token: token
       })
     }
   } catch (error) {
@@ -87,12 +92,13 @@ module.exports.login = async (req, res) => {
 
 // [GET] api/v1/auth/detail/:id
 module.exports.detail = async (req, res) => {
+
   try {
     const id = req.params.id;
     const account = await Account.findOne({
       _id: id,
       deleted: false
-    });
+    }).select("-password");
     if (!account) {
       res.json({
         message: "Tài khoản đã bị xóa!"

@@ -1,17 +1,10 @@
-module.exports.generateToken = (length) => {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let token = '';
-    for (let i = 0; i < length; i++) {
-      token += characters.charAt(Math.floor(Math.random() * characters.length));
-    }
-    return token;
-}
+const jwt = require('jsonwebtoken');
 
-module.exports.generateNumber = (length) => {
-  const characters = '0123456789';
-  let token = '';
-  for (let i = 0; i < length; i++) {
-    token += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
+module.exports.generateToken = (userId) => {
+  const token = jwt.sign({
+    userId
+  }, process.env.JWT_ACCESS_KEY, {
+    expiresIn: '1h'
+  });
   return token;
-}
+};
