@@ -6,12 +6,16 @@ const productSchema = new mongoose.Schema({
   title: String,
   description: String,
   price: Number,
-  discountPercentage: Number,
+  discountPercentage: {
+    type: Number,
+    default: 0
+  },
   stock: Number,
   thumbnail: String,
   status: {
     type: String,
-    default: "available"
+    default: "available",
+    enum: ['available', 'unavailable']
   },
   position: Number,
   slug: {

@@ -1,4 +1,5 @@
 const Customer = require("../models/customer.model")
+const customerValidate = require("../validates/customer.validate");
 
 // [GET] /api/v1/customers/
 module.exports.index = async (req, res) => {
@@ -13,27 +14,50 @@ module.exports.index = async (req, res) => {
 
 // [POST] /api/v1/customers/create
 module.exports.create = async (req, res) => {
-  try {
-    const customer = new Customer(req.body);
-    await customer.save();
-    res.json({
-      code: 200,
-      message: "Tạo mới khách hàng thành công!",
-      customer: customer
-    })
-  } catch (error) {
+  const result = customerValidate(req.body);
+  if (result.error) {
     res.json({
       code: 400,
-      message: error
-    })
+      message: result.error.details.map(err => err.message)
+    });
+  } else {
+    const existEmail = await Customer.findOne({
+      email: result.value.email,
+      deleted: false
+    });
+    if (existEmail) {
+      res.json({
+        code: 400,
+        message: 'Email đã tồn tại'
+      });
+      return;
+    }
+
+    const customer = new Customer(result.value);
+    await customer.save();
+    res.status(201).json({
+      code: 201,
+      message: 'Tạo mới khách hàng thành công'
+    });
   }
 }
 
 
-// [PATCH] /api/v1/customers/edit
+// [PATCH] /api/v1/customers/edit/:id
 module.exports.edit = async (req, res) => {
   try {
     const id = req.params.id;
+    const existCustomer = await Customer.findOne({
+      _id: id,
+      deleted: false
+    });
+    if (!existCustomer) {
+      res.status(404).json({
+        message: 'Thông tin khách hàng không tồn tại!'
+      });
+      return;
+    }
+
     await Customer.updateOne({
       _id: id
     }, req.body)
@@ -58,13 +82,20 @@ module.exports.detail = async (req, res) => {
       _id: id,
       deleted: false
     })
+    if (!customer) {
+      res.json({
+        code: 404,
+        message: "Khách hàng không tồn tại!"
+      })
+      return;
+    }
     res.json({
       code: 200,
       customer: customer
     })
   } catch (error) {
     res.json({
-      code: 400,
+      code: 500,
       message: error
     })
   }
@@ -83,7 +114,7 @@ module.exports.delete = async (req, res) => {
     })
   } catch (error) {
     res.json({
-      code: 400,
+      code: 500,
       message: error
     })
   }

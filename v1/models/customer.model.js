@@ -13,19 +13,14 @@ const customerSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    match: [/\S+@\S+\.\S+/, 'is invalid'],
   },
   phone: {
     type: String,
     required: true,
-    unique: true,
-    match: [/^\d{10,15}$/, 'is invalid'], // Adjust regex for your needs
   },
   address: {
     street: String,
     city: String,
-    state: String,
-    postalCode: String,
     country: String,
   },
   company: String,
@@ -33,7 +28,6 @@ const customerSchema = new mongoose.Schema({
   notes: String,
   status: {
     type: String,
-    enum: ['active', 'inactive'],
     default: 'active',
   },
   deleted: {

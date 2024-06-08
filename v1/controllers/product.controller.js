@@ -47,51 +47,75 @@ module.exports.detail = async (req, res) => {
 
 // [POST] /api/v1/products/create
 module.exports.create = async (req, res) => {
+  const result = productValidate(req.body);
+  if (result.error) {
+    res.status(400).json({
+      code: 400,
+      message: result.error.details.map(err => err.message)
+    });
+    return;
+  }
+
   try {
-    req.body.discountPercentage = 0;
-    if (req.body) {
-      req.body.price = parseInt(req.body.price);
-      req.body.discountPercentage = parseInt(req.body.discountPercentage);
-      req.body.stock = parseInt(req.body.stock);
-    }
-    if (req.body.position) {
-      req.body.position = parseInt(req.body.position);
-    } else {
+    const productData = result.value;
+
+    if (!productData.position) {
       const countProduct = await Product.countDocuments({});
-      req.body.position = countProduct + 1;
+      productData.position = countProduct + 1;
+    } else {
+      productData.position = parseInt(productData.position);
     }
 
-    const product = new Product(req.body);
+    const product = new Product(productData);
     await product.save();
 
     res.json({
       code: 200,
       message: "Tạo mới sản phẩm thành công!"
-    })
+    });
   } catch (error) {
-    res.json({
+    res.status(400).json({
       code: 400,
-      message: error
-    })
+      message: "Tạo mới sản phẩm không thành công!",
+      error: error.message
+    });
   }
 }
 
 // [PATCH] /api/v1/products/edit/:id
 module.exports.edit = async (req, res) => {
+  const result = productValidate(req.body);
+  if (result.error) {
+    res.status(400).json({
+      code: 400,
+      message: result.error.details.map(err => err.message)
+    });
+    return;
+  }
+
   try {
     const id = req.params.id;
-    await Product.updateOne({
+    const updatedProduct = await Product.updateOne({
       _id: id
-    }, req.body)
-    res.json({
-      code: 200,
-      message: "Cập nhật sản phẩm thành công!"
-    })
+    }, result.value);
+
+    if (!updatedProduct) {
+      res.status(404).json({
+        code: 404,
+        message: "Không tìm thấy sản phẩm cần cập nhật"
+      });
+    } else {
+      res.json({
+        code: 200,
+        message: "Cập nhật sản phẩm thành công!"
+      });
+    }
   } catch (error) {
-    res.json({
+    res.status(400).json({
       code: 400,
-      message: error
-    })
+      message: "Cập nhật sản phẩm không thành công!",
+      error: error.message
+    });
   }
 }
 
@@ -99,19 +123,28 @@ module.exports.edit = async (req, res) => {
 module.exports.delete = async (req, res) => {
   try {
     const id = req.params.id;
-    await Product.updateOne({
+    const deletedProduct = await Product.updateOne({
       _id: id
     }, {
       deleted: true
-    })
-    res.json({
-      code: 200,
-      message: "Xóa sản phẩm thành công!"
-    })
+    });
+
+    if (!deletedProduct) {
+      res.status(404).json({
+        code: 404,
+        message: "Không tìm thấy sản phẩm cần xóa"
+      });
+    } else {
+      res.json({
+        code: 200,
+        message: "Xóa sản phẩm thành công!"
+      });
+    }
   } catch (error) {
-    res.json({
+    res.status(400).json({
       code: 400,
-      message: error
-    })
+      message: "Xóa sản phẩm không thành công!",
+      error: error.message
+    });
   }
 }
