@@ -3,6 +3,7 @@ const router = express.Router();
 
 const controller = require("../controllers/account.controller");
 
+
 router.post("/register", controller.register);
 
 router.post("/login", controller.login);

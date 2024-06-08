@@ -5,7 +5,7 @@ const accountValidate = require("../validates/account.validate");
 
 const md5 = require("md5");
 
-// [POST] api/v1/user/register
+// [POST] api/v1/auth/register
 module.exports.register = async (req, res) => {
   const result = accountValidate(req.body);
   if (result.error) {
@@ -40,7 +40,7 @@ module.exports.register = async (req, res) => {
   }
 }
 
-// [POST] api/v1/user/login
+// [POST] api/v1/auth/login
 module.exports.login = async (req, res) => {
   try {
     const result = loginValidate(req.body);
@@ -85,7 +85,7 @@ module.exports.login = async (req, res) => {
 }
 
 
-// [GET] api/v1/user/detail/:id
+// [GET] api/v1/auth/detail/:id
 module.exports.detail = async (req, res) => {
   try {
     const id = req.params.id;
@@ -110,7 +110,7 @@ module.exports.detail = async (req, res) => {
   }
 }
 
-// [DELETE] api/v1/user/delete/:id
+// [DELETE] api/v1/auth/delete/:id
 module.exports.delete = async (req, res) => {
   try {
     const id = req.params.id;
@@ -130,7 +130,7 @@ module.exports.delete = async (req, res) => {
 }
 
 
-// [PATCH] api/v1/user/edit/:id
+// [PATCH] api/v1/auth/edit/:id
 module.exports.edit = async (req, res) => {
   try {
     const id = req.params.id;

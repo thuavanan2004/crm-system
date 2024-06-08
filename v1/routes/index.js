@@ -11,6 +11,6 @@ module.exports = (app) => {
 
   app.use(version + "/customers", authMiddleware.requireAuth, customerRoutes);
 
-  app.use(version + "/accounts", accountRoutes);
+  app.use(version + "/auth", accountRoutes);
 
 }
